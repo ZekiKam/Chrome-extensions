@@ -19,6 +19,8 @@ function showInterruptScreen() {
 
     document.body.appendChild(interruptDiv);
 
+    
+
     setTimeout(() => {
         document.body.removeChild(interruptDiv);
     }, 5000);

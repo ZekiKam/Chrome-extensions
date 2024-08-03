@@ -5,6 +5,7 @@ chrome.runtime.onInstalled.addListener(() => {
 const shortsUrl = 'https://www.youtube.com/shorts';
 const reelsUrl = 'https://www.instagram.com/reels';
 
+
 chrome.action.onClicked.addListener((tab) => {
     console.log("button clicked");
     if (tab.url.startsWith(shortsUrl) || tab.url.startsWith(reelsUrl)) {
