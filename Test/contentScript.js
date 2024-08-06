@@ -1,7 +1,21 @@
-let interruptEnabled = false;
-let previousUrl = location.href;
+// Check if the script has already been injected
+if (window.myContentScriptInjected) {
+    return;
+}
+window.myContentScriptInjected = true;
 
-function showInterruptScreen() {
+let previousUrl = location.href;
+let interruptEnabled = false;
+//let selectedOption = null;
+let timeoutId = null;
+
+
+
+
+function showInterruptScreen(option) {
+    // Ensure any previous interruption is cleared
+    clearInterruptScreen();
+
     const interruptDiv = document.createElement('div');
     interruptDiv.style.position = 'fixed';
     interruptDiv.style.top = '0';
@@ -15,33 +29,67 @@ function showInterruptScreen() {
     interruptDiv.style.justifyContent = 'center';
     interruptDiv.style.alignItems = 'center';
     interruptDiv.style.fontSize = '2rem';
-    interruptDiv.innerText = 'Wait for 5 seconds...';
 
-    document.body.appendChild(interruptDiv);
+    if (option === "countdown") {
+        interruptDiv.innerText = 'Wait for 5 seconds...';
+        timeoutId = setTimeout(() => {
+            clearInterruptScreen();
+        }, 5000);
 
+    } else if (option === "quote") {
+        fetch(chrome.runtime.getURL('quotes.json'))
+            .then(response => response.json())
+            .then(data => {
+                const randomQuote = data[Math.floor(Math.random() * data.length)];
+                const quoteText = data.quote;
+                const quoteAuthor = data.author;
+                interruptDiv.innerText = `${quoteText}\n— ${quoteAuthor}`;
+                timeoutId = setTimeout(() => {
+                    clearInterruptScreen();
+                }, 5000);
+            });
+
+    } else if (option === "quit"){
+        clearInterruptScreen()
+        }
     
+    document.body.appendChild(interruptDiv);
+}
 
-    setTimeout(() => {
+
+function clearInterruptScreen() {
+    if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+    }
+    const interruptDiv = document.querySelector('div');
+    if (interruptDiv) {
         document.body.removeChild(interruptDiv);
-    }, 5000);
+    }
 }
 
 function checkForUrlChange() {
     const currentUrl = location.href;
     if (interruptEnabled && currentUrl !== previousUrl) {
         previousUrl = currentUrl;
-        showInterruptScreen();
+        showInterruptScreen(message.option);
     }
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+
+
+
+//Main
+chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "enableInterrupt") {
         interruptEnabled = true;
         previousUrl = location.href;
-        showInterruptScreen();
+        showInterruptScreen(message.option);
     } else if (message.action === "disableInterrupt") {
-        interruptEnabled = false;
+        clearInterruptScreen();
     }
 });
 
 setInterval(checkForUrlChange, 1000);
+

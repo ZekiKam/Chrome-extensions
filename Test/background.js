@@ -1,39 +1,55 @@
+console.log(chrome.action);
+const shortsUrl = 'https://www.youtube.com/shorts';
+const reelsUrl = 'https://www.instagram.com/reels';
+//consider tiktok
+
+
 chrome.runtime.onInstalled.addListener(() => {
     chrome.action.setBadgeText({ text: "OFF" });
 });
 
-const shortsUrl = 'https://www.youtube.com/shorts';
-const reelsUrl = 'https://www.instagram.com/reels';
-
 
 chrome.action.onClicked.addListener((tab) => {
-    console.log("button clicked");
     if (tab.url.startsWith(shortsUrl) || tab.url.startsWith(reelsUrl)) {
+
+        //Toggle effect
         chrome.action.getBadgeText({ tabId: tab.id }, (prevState) => {
             const nextState = prevState === "ON" ? "OFF" : "ON";
-
             chrome.action.setBadgeText({ tabId: tab.id, text: nextState });
+        
+        chrome.action.setPopup({popup: 'popup.html'});
 
-            // Inject script only if state is "ON" and script is not already injected
-            if (nextState === "ON") {
-                chrome.scripting.executeScript({
+        if (nextState === "ON") {
+            //fetch next option from pop.js
+            chrome.runtime.onMessage.addListener((message) => {
+                if (message.action === "setOption") {
+                    selectedOption = message.option;
+                    chrome.tabs.sendMessage(tab.id, { action: "enableInterrupt", option: selectedOption });
+                }
+            });  
+            
+            chrome.scripting.executeScript({
                     target: { tabId: tab.id },
                     files: ['contentScript.js']
-                });
-            }
+            }); 
+        
+        
+        } else {
+            chrome.tabs.sendMessage(tab.id, { action: "disableInterrupt" });
+        }
+    });
 
-            // Send message to content script to enable/disable interruptions
-            chrome.tabs.sendMessage(tab.id, { action: nextState === "ON" ? "enableInterrupt" : "disableInterrupt" });
-        });
-    } else {
-        // Handle case where URL is not valid
-        chrome.action.setBadgeText({ tabId: tab.id, text: "OFF" });
+
+    } else { // incorrect url
+        chrome.action.setPopup({popup:''}) //clear popup
         chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: showAlert
         });
     }
 });
+
+
 
 function showAlert() {
     alert("This extension only works for YouTube Shorts and Instagram Reels.");
