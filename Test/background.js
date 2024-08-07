@@ -10,6 +10,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 
 chrome.action.onClicked.addListener((tab) => {
+    console.log("button clicked")
     if (tab.url.startsWith(shortsUrl) || tab.url.startsWith(reelsUrl)) {
 
         //Toggle effect

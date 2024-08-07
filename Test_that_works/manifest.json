@@ -1,0 +1,31 @@
+{
+    "manifest_version": 3,
+    "name": "Test that works",
+    "version": "1.0",
+    "description": "Interrupt YouTube Shorts/ Instagram reels when video ID changes",
+    "icons": {
+        "16": "images/icon-16.png",
+        "32": "images/icon-32.png",
+        "48": "images/icon-48.png",
+        "128": "images/icon-128.png"
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+        "default_icon": {
+            "16": "images/icon-16.png",
+            "32": "images/icon-32.png",
+            "48": "images/icon-48.png",
+            "128": "images/icon-128.png"
+        }
+    },
+    "permissions": ["activeTab", "scripting", "tabs"],
+    "content_scripts": [
+      {
+        "matches": ["https://www.youtube.com/shorts/*","https://www.instagram.com/reels/*"],
+        "js": ["contentScript.js"]
+      }
+    ]
+  }
+  
